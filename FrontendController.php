@@ -29,7 +29,6 @@ class FrontendController extends Controller
                         ->withErrors($validator)
                         ->withInput();
         }
-
         $checkEmail = Doctor::checkEmailExist($request->email); 
         if($checkEmail) { 
             $validator->errors()->add('error', 'Email registed!');
@@ -106,10 +105,8 @@ class FrontendController extends Controller
         if(!$data) { 
             return redirect()->route('register');
         } 
-        $listSpecialty = Doctor::$specialty;
-        $listCountry = Doctor::$country;  
         if (!$request->isMethod('post')) { 
-            return view('doctor-information', ['listCountry' => $listCountry, 'listSpecialty' => $listSpecialty]); 
+            return view('doctor-information', ['listCountry' => Doctor::$country, 'listSpecialty' => Doctor::$specialty]); 
  
         }  
         $validator = Validator::make($request->all(), [
@@ -155,13 +152,8 @@ class FrontendController extends Controller
         }  
        
         if (!$request->isMethod('post')) { 
-             $arrAge = Doctor::generateListAge();
-            $arrGender = Doctor::$gender;
-            $arrDrinker = Doctor::$drinker;
-            $arrSmoker = Doctor::$smoker;
-            $arrRace = Doctor::$race; 
-            return view('patient-information', ['arrAge' => $arrAge, 'arrGender' => $arrGender, 'arrDrinker'=>$arrDrinker,
-        'arrSmoker'=>$arrSmoker, 'arrRace' => $arrRace ]);  
+            return view('patient-information', ['arrAge' => Doctor::generateListAge(), 'arrGender' =>  Doctor::$gender, 'arrDrinker'=>Doctor::$drinker,
+        'arrSmoker'=> Doctor::$smoker, 'arrRace' => Doctor::$race ]);  
 
         }  
         $validator = Validator::make($request->all(), [
@@ -172,7 +164,6 @@ class FrontendController extends Controller
             'smoker' => 'required',
             'race' => 'required',
             'drinker'  => 'required',
-            
             ]);   
         if ($validator->fails()) {
             return redirect()->route('patientinfo')
@@ -230,20 +221,13 @@ class FrontendController extends Controller
                         ->withErrors($validator) 
                         ->withInput(); 
         }  
-        $path_before_left_profile = Common::uploadFile($request->before_left_profile,'images');
-        $path_before_frontal = Common::uploadFile($request->before_frontal,'images');
-        $path_before_right_oblique = Common::uploadFile($request->before_right_oblique,'images');
-        $path_after_left_profile = Common::uploadFile($request->after_left_profile,'images');
-        $path_after_frontal = Common::uploadFile($request->after_frontal,'images');
-        $path_after_right_oblique = Common::uploadFile($request->after_right_oblique,'images');
-        
         $arrData = [
-            'before_left_profile' => $path_before_left_profile,
-            'before_frontal' => $path_before_frontal,
-            'before_right_oblique' => $path_before_right_oblique,
-            'after_left_profile' =>  $path_after_left_profile,
-            'after_frontal' => $path_after_frontal,
-            'after_right_oblique' => $path_after_right_oblique,
+            'before_left_profile' => Common::uploadFile($request->before_left_profile,'images'),
+            'before_frontal' => Common::uploadFile($request->before_frontal,'images'),
+            'before_right_oblique' => Common::uploadFile($request->before_right_oblique,'images'),
+            'after_left_profile' =>  Common::uploadFile($request->after_left_profile,'images'),
+            'after_frontal' => Common::uploadFile($request->after_frontal,'images'),
+            'after_right_oblique' => Common::uploadFile($request->after_right_oblique,'images'),
 
         ];
         $createId = BeforeAfterImage::create($arrData)->id;
@@ -270,11 +254,8 @@ class FrontendController extends Controller
         }  
         if (!$request->isMethod('post')) { 
             $list_image = BeforeAfterImage::where("id", $image_id)->first(); 
-            $location = Submission::$location;
-            $treatmentarea = Submission::$treatmentarea;
-            $product = Submission::$product;
-            return view('procedure-details', ['list_image' => $list_image, 'location' => $location,
-        'treatmentarea' => $treatmentarea, 'product' => $product]); 
+            return view('procedure-details', ['list_image' => $list_image, 'location' => Submission::$location,
+        'treatmentarea' =>  Submission::$treatmentarea, 'product' =>  Submission::$product]); 
         } 
         $doctor_id = session()->get('doctor_id');
         $patient_id = session()->get('patient_id');
