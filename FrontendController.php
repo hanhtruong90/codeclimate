@@ -21,20 +21,15 @@ class FrontendController extends Controller
         $validator = Validator::make($request->all(), [
             'firstname' => 'required',
             'familyname' => 'required',
-            'email' => 'required|email',
+            'email' => 'required|email|unique:doctors',
             ]);
         if ($validator->fails()) {
             return redirect()->route('register')->withErrors($validator)->withInput();
         }
-        $checkEmail = Doctor::checkEmailExist($request->email); 
-        if($checkEmail) { 
-            $validator->errors()->add('error', 'Email registed!');
-            return redirect()->route('register')->withErrors($validator)->withInput(); 
-        }
         $verification_code = Doctor::generateCode();
         $data = [
             'firstname' => $request->firstname,
-            'familyname' => $request->familyname,
+            'familyname' => $request->familyname, 
             'email' => $request->email,
             'status' => 0,
             'verification_code' => $verification_code
@@ -44,11 +39,9 @@ class FrontendController extends Controller
             Mail::to($request->email)->send(new VerificationCode(['code' => $verification_code ])); 
             session()->put('email', $request->email);   
             return redirect()->route('verify');    
-        } 
-        else {
-            $validator->errors()->add('error', 'Register failed!');
-            return redirect()->route('register')->withErrors($validator)->withInput();
-        }   
+        }  
+        $validator->errors()->add('error', 'Register failed!');
+        return redirect()->route('register')->withErrors($validator)->withInput();  
     }
  
     public function verify(Request $request) {
@@ -73,10 +66,8 @@ class FrontendController extends Controller
             $data->update(['status' => 1]);  
             return redirect()->route('doctorinfo');  
         } 
-        else {  
-            $validator->errors()->add('error', 'Verification code invalid!');
-            return redirect()->route('verify')->withErrors($validator)->withInput(); 
-        }   
+        $validator->errors()->add('error', 'Verification code invalid!');
+        return redirect()->route('verify')->withErrors($validator)->withInput();   
         
  
     } 
@@ -111,10 +102,8 @@ class FrontendController extends Controller
             session()->put('doctor_id', $id);  
             return redirect()->route('patientinfo');
         } 
-        else {
-            $validator->errors()->add('error', 'Add info failed!');
-            return redirect()->route('verify')->withErrors($validator)->withInput();  
-        }
+        $validator->errors()->add('error', 'Add info failed!');
+        return redirect()->route('verify')->withErrors($validator)->withInput();  
     }
     
     public function patientInfo(Request $request) {
@@ -159,10 +148,8 @@ class FrontendController extends Controller
             session()->put('patientid', $createId);  
             return redirect()->route('beforeandafterphoto');
         } 
-        else {
-            $validator->errors()->add('error', 'Add info failed!');
-            return redirect()->route('patientinfo')->withErrors($validator)->withInput(); 
-        }  
+        $validator->errors()->add('error', 'Add info failed!');
+        return redirect()->route('patientinfo')->withErrors($validator)->withInput(); 
     }
  
     public function beforeandafterphoto(Request $request) {
@@ -199,10 +186,8 @@ class FrontendController extends Controller
             session()->forget('patientid');  
             return redirect()->route('proceduredetail');
         }
-        else { 
-            $validator->errors()->add('error', 'Upload failed!');
-            return redirect()->route('beforeandafterphoto')->withErrors($validator)->withInput(); 
-        }  
+        $validator->errors()->add('error', 'Upload failed!');
+        return redirect()->route('beforeandafterphoto')->withErrors($validator)->withInput();  
     } 
 
     public function procedureDetail(Request $request) { 
@@ -256,10 +241,8 @@ class FrontendController extends Controller
             session()->forget('image_id');
             return redirect()->route('reviewsubmission'); 
         } 
-        else {
-            $validator->errors()->add('error', 'Add info failed!');
-            return redirect()->route('proceduredetail')->withErrors($validator)->withInput();   
-        }  
+        $validator->errors()->add('error', 'Add info failed!');
+        return redirect()->route('proceduredetail')->withErrors($validator)->withInput();   
     }  
  
     public function reviewSubmission(Request $request) {
