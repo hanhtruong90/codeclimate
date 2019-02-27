@@ -15,9 +15,10 @@ class FrontendController extends Controller
 {
     public function register(Request $request)
     {
-        if (!$request->isMethod('post')) {
-            return view('register'); 
-        } 
+        return view('register'); 
+    }  
+
+    public function postRegister(Request $request) {
         $validator = Validator::make($request->all(), [
             'firstname' => 'required',
             'familyname' => 'required',
@@ -41,7 +42,7 @@ class FrontendController extends Controller
             return redirect()->route('verify');    
         }  
         $validator->errors()->add('error', 'Register failed!');
-        return redirect()->route('register')->withErrors($validator)->withInput();  
+        return redirect()->route('register')->withErrors($validator)->withInput(); 
     }
  
     public function verify(Request $request) {
@@ -49,9 +50,11 @@ class FrontendController extends Controller
         if(!$email) {
             return redirect()->route('register');   
         }  
-        if (!$request->isMethod('post')) { 
-            return view('verify');    
-        }
+        return view('verify');     
+    
+    } 
+    public function postVerify(Request $request) {
+        $email = session()->get('email');
         $validator = Validator::make($request->all(), [
             'verification_code' => 'required',
             ]);   
@@ -63,23 +66,24 @@ class FrontendController extends Controller
         if($data) { 
             session()->forget('email');
             session()->put('id', $data->id); 
-            $data->update(['status' => 1]);  
+            $data->update(['status' => 1]);   
             return redirect()->route('doctorinfo');  
         } 
         $validator->errors()->add('error', 'Verification code invalid!');
         return redirect()->route('verify')->withErrors($validator)->withInput();   
-        
- 
-    } 
+    }
     
     public function doctorInfo(Request $request) {
         $id = session()->get('id');
         if(!$id){
             return redirect()->route('register');
         }  
-        if (!$request->isMethod('post')) { 
-            return view('doctor-information', ['listCountry' => Doctor::$country, 'listSpecialty' => Doctor::$specialty]); 
-        }  
+        return view('doctor-information', ['listCountry' => Doctor::$country, 'listSpecialty' => Doctor::$specialty]); 
+          
+    }
+
+    public function postDoctorInfo(Request $request){
+        $id = session()->get('id');
         $validator = Validator::make($request->all(), [
             'specialty' => 'required',
             'country' => 'required',
@@ -103,7 +107,7 @@ class FrontendController extends Controller
             return redirect()->route('patientinfo');
         } 
         $validator->errors()->add('error', 'Add info failed!');
-        return redirect()->route('verify')->withErrors($validator)->withInput();  
+        return redirect()->route('verify')->withErrors($validator)->withInput();
     }
     
     public function patientInfo(Request $request) {
@@ -111,10 +115,13 @@ class FrontendController extends Controller
         if(!$doctor_id){ 
             return redirect()->route('register');  
         }  
-        if (!$request->isMethod('post')) { 
-            return view('patient-information', ['arrAge' => Doctor::generateListAge(), 'arrGender' =>  Doctor::$gender, 'arrDrinker'=>Doctor::$drinker,
-        'arrSmoker'=> Doctor::$smoker, 'arrRace' => Doctor::$race ]);  
-        }  
+        return view('patient-information', ['arrAge' => Doctor::generateListAge(), 'arrGender' =>  Doctor::$gender, 'arrDrinker'=>Doctor::$drinker,
+        'arrSmoker'=> Doctor::$smoker, 'arrRace' => Doctor::$race ]);   
+         
+    }
+
+    public function postPatientInfo(Request $request) {
+        $doctor_id = session()->get('doctor_id');
         $validator = Validator::make($request->all(), [
             'firstname' => 'required',
             'familyname' => 'required',
@@ -149,17 +156,21 @@ class FrontendController extends Controller
             return redirect()->route('beforeandafterphoto');
         } 
         $validator->errors()->add('error', 'Add info failed!');
-        return redirect()->route('patientinfo')->withErrors($validator)->withInput(); 
+        return redirect()->route('patientinfo')->withErrors($validator)->withInput();
     }
  
     public function beforeandafterphoto(Request $request) {
+        
         $patientid = session()->get('patientid');
         if(!$patientid){ 
             return redirect()->route('register'); 
         }  
-        if (!$request->isMethod('post')) { 
-            return view('beforeandafter-photo');   
-        } 
+        return view('beforeandafter-photo');   
+
+    } 
+
+    public function postBeforeandafterphoto(Request $request) {
+        $patientid = session()->get('patientid');
         $validator = Validator::make($request->all(), [
             'before_left_profile' => 'required',
             'before_frontal' => 'required',
@@ -188,30 +199,28 @@ class FrontendController extends Controller
         }
         $validator->errors()->add('error', 'Upload failed!');
         return redirect()->route('beforeandafterphoto')->withErrors($validator)->withInput();  
-    } 
+    }
 
     public function procedureDetail(Request $request) { 
         $image_id =  session()->get('image_id');
         if(!$image_id){ 
             return redirect()->route('register'); 
         }  
-        if (!$request->isMethod('post')) { 
-            $list_image = BeforeAfterImage::where("id", $image_id)->first(); 
-            return view('procedure-details', ['list_image' => $list_image, 'location' => Submission::$location,
-        'treatmentarea' =>  Submission::$treatmentarea, 'product' =>  Submission::$product]); 
-        } 
+        $list_image = BeforeAfterImage::where("id", $image_id)->first(); 
+        return view('procedure-details', ['list_image' => $list_image, 'location' => Submission::$location,
+    'treatmentarea' =>  Submission::$treatmentarea, 'product' =>  Submission::$product]); 
+           
+    }  
+
+    public function postProcedureDetail(Request $request) {
+        $image_id =  session()->get('image_id');
         $doctor_id = session()->get('doctor_id');
         $patient_id = session()->get('patient_id');
         $validator = Validator::make($request->all(), [
-            'location' => 'required',
-            'treatment_area' => 'required',
-            'product' => 'required',
-            'qty' => 'required',
+            'location' => 'required','treatment_area' => 'required','product' => 'required','qty' => 'required',
             ]);   
         if ($validator->fails()) {
-            return redirect()->route('proceduredetail')
-                        ->withErrors($validator) 
-                        ->withInput();
+            return redirect()->route('proceduredetail')->withErrors($validator) ->withInput();
         }  
         $treatment_used = [];
         $request_location = $request->location;
@@ -219,20 +228,14 @@ class FrontendController extends Controller
         $request_product = $request->product;
         $request_qty = $request->qty;
         foreach( $request_location as $key => $value) {
-            $arr = ["location" => $request_location[$key],
-                    'treatment_area' => $request_treatment_area[$key],
-                    'product' => $request_product[$key],
-                    'qty' => $request_qty[$key],
-            ];
+            $arr = ["location" => $request_location[$key],'treatment_area' => $request_treatment_area[$key], 'product' => $request_product[$key],'qty' => $request_qty[$key],];
             $treatment_used[] = $arr;
         }
         $treatment_used = $treatment_used;
         $createId = Submission::create( [ 
             'addition_infomation' => $request->addition_infomation,
-            'doctor_id' => $doctor_id,
-            'patient_id' => $patient_id,
-            'image_id' => $image_id,
-            'treatment_used' => $treatment_used,  
+            'doctor_id' => $doctor_id,'patient_id' => $patient_id,
+            'image_id' => $image_id,'treatment_used' => $treatment_used,  
         ])->id;  
         if($createId) {  
             session()->put('submissionId', $createId);  
@@ -242,8 +245,8 @@ class FrontendController extends Controller
             return redirect()->route('reviewsubmission'); 
         } 
         $validator->errors()->add('error', 'Add info failed!');
-        return redirect()->route('proceduredetail')->withErrors($validator)->withInput();   
-    }  
+        return redirect()->route('proceduredetail')->withErrors($validator)->withInput();
+    }
  
     public function reviewSubmission(Request $request) {
         $submissionId =  session()->get('submissionId');
@@ -257,6 +260,8 @@ class FrontendController extends Controller
     public function beforeandafterPhotocontest(Request $request) {
         return view('beforeandafter-photo-contest');
     }
+
+    
 
     
 }
