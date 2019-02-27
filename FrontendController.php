@@ -123,33 +123,19 @@ class FrontendController extends Controller
     public function postPatientInfo(Request $request) {
         $doctor_id = session()->get('doctor_id');
         $validator = Validator::make($request->all(), [
-            'firstname' => 'required',
-            'familyname' => 'required',
-            'age' => 'required',
-            'gender' => 'required',
-            'smoker' => 'required',
-            'race' => 'required',
+            'firstname' => 'required','familyname' => 'required','age' => 'required', 'gender' => 'required','smoker' => 'required','race' => 'required',
             'drinker'  => 'required',
             ]);   
         if ($validator->fails()) {
-            return redirect()->route('patientinfo')
-                        ->withErrors($validator) 
-                        ->withInput();
+            return redirect()->route('patientinfo')->withErrors($validator) ->withInput();
         }   
         $path = "";
         if(isset($request->consent_form) && $request->consent_form != "") {
-            $file = $request->consent_form;
-            $path = Common::uploadFile($file);
+            $file = $request->consent_form; $path = Common::uploadFile($file);
         } 
         $createId = Patient::create([ 
-            'firstname' => $request->firstname,
-            'familyname' => $request->familyname,
-            'age' => $request->age,
-            'gender' => $request->gender,
-            'smoker' => $request->smoker,
-            'race' => $request->race,
-            'drinker' => $request->drinker,
-            'consent_form' => $path
+            'firstname' => $request->firstname,'familyname' => $request->familyname,'age' => $request->age, 'gender' => $request->gender,'smoker' => $request->smoker,
+            'race' => $request->race,'drinker' => $request->drinker,'consent_form' => $path
         ])->id; 
         if($createId) {  
             session()->put('patientid', $createId);  
@@ -160,24 +146,18 @@ class FrontendController extends Controller
     }
  
     public function beforeandafterphoto(Request $request) {
-        
         $patientid = session()->get('patientid');
         if(!$patientid){ 
             return redirect()->route('register'); 
         }  
         return view('beforeandafter-photo');   
-
     } 
-
     public function postBeforeandafterphoto(Request $request) {
         $patientid = session()->get('patientid');
         $validator = Validator::make($request->all(), [
-            'before_left_profile' => 'required',
-            'before_frontal' => 'required',
-            'before_right_oblique' => 'required',
-            'after_left_profile' => 'required',
-            'after_frontal' => 'required', 
-            'after_right_oblique' => 'required', 
+            'before_left_profile' => 'required','before_frontal' => 'required',
+            'before_right_oblique' => 'required', 'after_left_profile' => 'required',
+            'after_frontal' => 'required', 'after_right_oblique' => 'required', 
         ]);   
         if ($validator->fails()) {
             return redirect()->route('beforeandafterphoto')->withErrors($validator) ->withInput(); 
@@ -189,7 +169,6 @@ class FrontendController extends Controller
             'after_left_profile' =>  Common::uploadFile($request->after_left_profile,'images'),
             'after_frontal' => Common::uploadFile($request->after_frontal,'images'),
             'after_right_oblique' => Common::uploadFile($request->after_right_oblique,'images'),
-
         ])->id;
         if($createId) { 
             session()->put('image_id', $createId);     
